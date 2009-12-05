@@ -30,7 +30,7 @@ fi
 export GIT_PS1_SHOOWDIRTYSTATE=1
 
 # Comment in the above and uncomment this below for a color prompt
-if [ which __git_ps1 > /dev/null ]
+if test which __git_ps1 > /dev/null
 then
   PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]@\[\033[35m\]\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[01;33m\]$(__git_ps1)\[\033[00m\]\$ '
 else
