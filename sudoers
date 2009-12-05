@@ -1,0 +1,22 @@
+# /etc/sudoers
+#
+# This file will be validated with the 'visudo' command.
+#
+# See the man page for details on how to write a sudoers file.
+#
+Defaults env_reset
+
+# Uncomment to allow members of group sudo to not need a password
+# %sudo ALL=NOPASSWD: ALL
+
+# Host alias specification
+
+# User alias specification
+
+# Cmnd alias specification
+
+# User privilege specification
+root    ALL=(ALL) ALL
+
+# Group privilege specification
+%admin  ALL=(ALL) ALL

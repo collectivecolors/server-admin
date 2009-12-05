@@ -1,0 +1,121 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# This script must be run by root on a freshly installed server.
+
+
+#-------------------------------------------------------------------------------
+# 1. Change root password
+
+passwd # (repeat safe)
+
+
+#-------------------------------------------------------------------------------
+# 2. Change main server settings
+
+# Set hostname. (repeat safe)
+MY_HOSTNAME=''
+
+echo -n "Enter hostname for this server: "
+read MY_HOSTNAME
+echo ''
+
+if [ ! $MY_HOSTNAME ]
+then
+  echo "You must specify a hostname for this server."
+  exit 1
+fi
+
+echo -n $MY_HOSTNAME > /etc/hostname
+
+# Set locale. (repeat safe)
+locale-gen en_US.UTF-8 || exit 2
+/usr/sbin/update-locale LANG=en_US.UTF-8 || exit 3
+
+# Set timezone. (repeat safe)
+tzconfig || exit 4
+
+
+#-------------------------------------------------------------------------------
+# 9. Setup bash configuration files for root
+
+# Copy root shell environment. (repeat safe)
+cp -f /root/init/root.bashrc ~/.bashrc || exit 5
+cp -f /root/init/user.bash_aliases ~/.bash_aliases || exit 6
+source ~/.bashrc
+
+# Copy default user environment. (repeat safe)
+cp -f /root/init/user.bashrc /etc/skel/.bashrc || exit 7
+cp -f /root/init/user.bash_aliases /etc/skel/.bash_aliases || exit 8
+
+#-------------------------------------------------------------------------------
+# 5. Grant administrative user group sudo privileges
+
+if [ -f "/etc/sudoers.tmp" ]
+then
+  exit 9
+fi
+
+touch /etc/sudoers.tmp || exit 10 # Lock the sudoers file.
+
+visudo -c -f /root/init/sudoers
+if [ $? -ne 0 ]
+then
+  exit 11
+fi
+
+cp /root/init/sudoers /etc/sudoers || exit 12
+rm /etc/sudoers.tmp || exit 13 # Remove sudoers lock.
+
+
+#-------------------------------------------------------------------------------
+# 6. Setup basic IP tables
+
+# (repeat safe)
+cp /root/init/iptables.test.rules /etc/iptables.test.rules || exit 13
+
+iptables-restore < /etc/iptables.test.rules
+
+if [ $? -ne 0 ]
+then
+  exit 3
+fi
+
+# (repeat safe)
+iptables-save > /etc/iptables.up.rules
+
+# Setup network adaptors to automatically restore the up rules (NOT repeat safe)
+echo -e "\npre-up iptables-restore < /etc/iptables.up.rules" >> /etc/network/interfaces
+
+
+#-------------------------------------------------------------------------------
+# 3. Update server software
+
+# Update the stuff that exists. (repeat safe)
+aptitude update
+aptitude safe-upgrade
+aptitude full-upgrade
+
+# Add some core packages. (repeat safe)
+aptitude install build-essential bash-completion dnsutils
+
+
+#-------------------------------------------------------------------------------
+# 8. Edit the Secure Shell configuration directives.
+
+cp -f /root/init/sshd_config /etc/ssh/sshd_config || exit 4
+
+/etc/init.d/ssh reload || exit 5
+
+#-------------------------------------------------------------------------------
+# 4. Add administrative user
+
+adduser admin || exit 6
+
+
+#-------------------------------------------------------------------------------
+# 10. Restart server
+
+reboot
+
+
+ 
