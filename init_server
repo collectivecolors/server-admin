@@ -57,28 +57,28 @@ $INIT_DIR/upgrade_server || exit $((6 + $?))
 # Setup bash environment
 
 $INIT_DIR/set_root_env $INIT_DIR || exit $((10 + $?))
-$INIT_DIR/set_default_user_env $INIT_DIR || exit $((13 + $?))
+$INIT_DIR/set_default_user_env $INIT_DIR || exit $((14 + $?))
 
 
 # Add administrative user
 
 echo "Adding administrative user."
-adduser admin || exit 16
+adduser admin || exit 18
 
 
 # Setup basic IP tables
 
-$INIT_DIR/set_iptables $INIT_DIR || exit $((16 + $?))
+$INIT_DIR/set_iptables $INIT_DIR || exit $((18 + $?))
 
 
 # Setup user and group sudo privileges
 
-$INIT_DIR/set_sudoers $INIT_DIR || exit $((20 + $?))
+$INIT_DIR/set_sudoers $INIT_DIR || exit $((22 + $?))
 
 
 # Setup the secure shell configuration
 
-$INIT_DIR/set_ssh $INIT_DIR || exit $((25 + $?))
+$INIT_DIR/set_ssh $INIT_DIR || exit $((27 + $?))
 
 
 # Finalizing the setup folder

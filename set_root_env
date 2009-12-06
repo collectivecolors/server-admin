@@ -24,19 +24,15 @@ then
   fi  
 fi
 
-PATH_SETTING="export PATH=\$PATH:$INIT_DIR"
-
 #-------------------------------------------------------------------------------
 # Start
 
 echo "Copying default root shell environment."
 
-cp -f "$INIT_DIR/overrides/root.bashrc" /root/.bashrc || exit 1
+cp -f "$INIT_DIR/overrides/root.profile" /root/.profile || exit 1
+cp -f "$INIT_DIR/overrides/root.bashrc" /root/.bashrc || exit 2
 
-if ! grep -q "$PATH_SETTING" /root/.bashrc
-then
-  echo "Including $INIT_DIR in root PATH variable."
-  echo -e "\n$PATH_SETTING" >> /root/.bashrc || exit 2
-fi
+echo "Including $INIT_DIR in root PATH variable."
+echo -e "\nexport PATH=\$PATH:$INIT_DIR" >> /root/.bashrc || exit 3
 
-cp -f "$INIT_DIR/overrides/user.bash_aliases" /root/.bash_aliases || exit 3
+cp -f "$INIT_DIR/overrides/user.bash_aliases" /root/.bash_aliases || exit 4

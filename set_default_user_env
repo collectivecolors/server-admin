@@ -29,5 +29,6 @@ fi
 
 echo "Copying default user shell environment."
 
-cp -f "$INIT_DIR/overrides/user.bashrc" /etc/skel/.bashrc || exit 1
-cp -f "$INIT_DIR/overrides/user.bash_aliases" /etc/skel/.bash_aliases || exit 2
+cp -f "$INIT_DIR/overrides/user.profile" /etc/skel/.profile || exit 1
+cp -f "$INIT_DIR/overrides/user.bashrc" /etc/skel/.bashrc || exit 2
+cp -f "$INIT_DIR/overrides/user.bash_aliases" /etc/skel/.bash_aliases || exit 3
