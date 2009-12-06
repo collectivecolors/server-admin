@@ -12,7 +12,9 @@ if [ ! "$INIT_DIR" ]
 then
   # Get the directory of this command.
   CMD_NAME=`basename $0`
-  if [ ! `which $CMD_NAME` ]
+  INIT_DIR=`which $CMD_NAME`
+  
+  if [ ! "$INIT_DIR" ]
   then
     cd `dirname $0`
     INIT_DIR=`pwd`
