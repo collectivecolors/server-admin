@@ -1,7 +1,7 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
 # 
-# setup [ $DIRECTORY ]
+# init_server [ $DIRECTORY ]
 # 
 # IMPORTANT: This script should be run by root on a freshly installed server.
 #
@@ -30,8 +30,9 @@ fi
 
 # Preparing the setup folder
 
-chmod 700 "$INIT_DIR/*"
-chmod 600 "$INIT_DIR/overrides/*"
+chmod 700 $INIT_DIR
+chmod 700 $INIT_DIR/*
+chmod 600 $INIT_DIR/overrides/*
 
 
 # Change root password
@@ -42,7 +43,7 @@ passwd || exit 1
 
 # Change main server settings
 
-$INIT_DIR/setp_server_info || exit $((1 + $?))
+$INIT_DIR/set_server_info || exit $((1 + $?))
 
 
 # Update server software
@@ -53,35 +54,35 @@ $INIT_DIR/upgrade_server || exit $((6 + $?))
 # Setup bash environment
 
 $INIT_DIR/set_root_env $INIT_DIR || exit $((10 + $?))
-$INIT_DIR/set_default_user_env $INIT_DIR || exit $((12 + $?))
+$INIT_DIR/set_default_user_env $INIT_DIR || exit $((13 + $?))
 
 
 # Add administrative user
 
 echo "Adding administrative user."
-adduser admin || exit 15
+adduser admin || exit 16
 
 
 # Setup basic IP tables
 
-$INIT_DIR/set_iptables $INIT_DIR || exit $((15 + $?))
+$INIT_DIR/set_iptables $INIT_DIR || exit $((16 + $?))
 
 
 # Setup user and group sudo privileges
 
-$INIT_DIR/set_sudoers $INIT_DIR || exit $((19 + $?))
+$INIT_DIR/set_sudoers $INIT_DIR || exit $((20 + $?))
 
 
 # Setup the secure shell configuration
 
-$INIT_DIR/set_ssh $INIT_DIR || exit $((24 + $?))
+$INIT_DIR/set_ssh $INIT_DIR || exit $((25 + $?))
 
 
 # Finalizing the setup folder
 
-chmod 600 "$INIT_DIR/startup"
+chmod 600 "$INIT_DIR/init_server"
 
 
 # Restart server
 
-reboot
+#reboot

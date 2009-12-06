@@ -22,7 +22,7 @@ then
   fi  
 fi
 
-PATH_SETTING="PATH=\$PATH:$INIT_DIR"
+PATH_SETTING="export PATH=\$PATH:$INIT_DIR"
 
 #-------------------------------------------------------------------------------
 # Start
