@@ -28,7 +28,7 @@ if [ -z "$debian_chroot" -a -r /etc/debian_chroot ]; then
 fi
 
 # Comment in the above and uncomment this below for a color prompt
-if [ ! -z `which __git_ps1` ]
+if [ ! -z `which git` ]
 then
   export GIT_PS1_SHOOWDIRTYSTATE=1
   

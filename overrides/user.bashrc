@@ -51,7 +51,7 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 if [ "$color_prompt" = yes ]; then
-    if [ ! -z `which __git_ps1` ]
+    if [ ! -z `which git` ]
     then
       export GIT_PS1_SHOOWDIRTYSTATE=1
       
