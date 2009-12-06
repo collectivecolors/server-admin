@@ -82,7 +82,14 @@ $INIT_DIR/set_ssh $INIT_DIR || exit $((25 + $?))
 
 chmod 600 "$INIT_DIR/init_server"
 
-
-# Restart server
-
-#reboot
+echo ''
+echo "Finished initializing the server."
+echo ''
+echo "Check to make sure you can log in via SSH with the administrative user."
+echo "If it fails, check your Secure Shell configurations or iptables rules."
+echo ''
+echo "You can find the SSH configuration in: [ /etc/ssh/sshd_config ]"
+echo "You can find your current iptables rules by running: [ iptables -L ]"
+echo ''
+echo "Reboot your server when you have made sure your administrative user can "
+echo "log in successfully."
