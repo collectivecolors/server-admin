@@ -1,0 +1,87 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# 
+# setup [ $DIRECTORY ]
+# 
+# IMPORTANT: This script should be run by root on a freshly installed server.
+#
+#-------------------------------------------------------------------------------
+# Properties
+
+# Directory that contains all of the files for server initialization.
+INIT_DIR=$1
+
+if [ ! "$INIT_DIR" ]
+then
+  # Get the directory of this command.
+  CMD_NAME=`basename $0`
+  if [ ! `which $CMD_NAME` ]
+  then
+    cd `dirname $0`
+    INIT_DIR=`pwd`
+  
+  else
+    INIT_DIR=`dirname $INIT_DIR`  
+  fi  
+fi
+
+#-------------------------------------------------------------------------------
+# Start
+
+# Preparing the setup folder
+
+chmod 700 "$INIT_DIR/*"
+chmod 600 "$INIT_DIR/overrides/*"
+
+
+# Change root password
+
+echo "Resetting root password"
+passwd || exit 1
+
+
+# Change main server settings
+
+$INIT_DIR/setp_server_info || exit $((1 + $?))
+
+
+# Update server software
+
+$INIT_DIR/upgrade_server || exit $((6 + $?))
+
+
+# Setup bash environment
+
+$INIT_DIR/set_root_env $INIT_DIR || exit $((10 + $?))
+$INIT_DIR/set_default_user_env $INIT_DIR || exit $((12 + $?))
+
+
+# Add administrative user
+
+echo "Adding administrative user."
+adduser admin || exit 15
+
+
+# Setup basic IP tables
+
+$INIT_DIR/set_iptables $INIT_DIR || exit $((15 + $?))
+
+
+# Setup user and group sudo privileges
+
+$INIT_DIR/set_sudoers $INIT_DIR || exit $((19 + $?))
+
+
+# Setup the secure shell configuration
+
+$INIT_DIR/set_ssh $INIT_DIR || exit $((24 + $?))
+
+
+# Finalizing the setup folder
+
+chmod 600 "$INIT_DIR/startup"
+
+
+# Restart server
+
+reboot

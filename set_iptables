@@ -1,0 +1,44 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#
+# setup_iptables [ $DIRECTORY ]
+#
+#-------------------------------------------------------------------------------
+# Properties
+
+INIT_DIR=$1
+
+if [ ! "$INIT_DIR" ]
+then
+  # Get the directory of this command.
+  CMD_NAME=`basename $0`
+  if [ ! `which $CMD_NAME` ]
+  then
+    cd `dirname $0`
+    INIT_DIR=`pwd`
+  
+  else
+    INIT_DIR=`dirname $INIT_DIR`  
+  fi  
+fi
+
+NETWORK_STARTUP_CMD="pre-up iptables-restore < /etc/iptables.rules"
+
+#-------------------------------------------------------------------------------
+# Start
+
+echo "Setting up iptables firewall."
+
+echo "Validating iptables rules."
+iptables-restore < "$INIT_DIR/overrides/iptables.rules" || exit 2
+
+
+echo "Saving ip tables configuration."
+iptables-save > /etc/iptables.rules || exit 3
+
+
+if ! grep -q "$NETWORK_STARTUP_CMD" /etc/network/interfaces
+then
+  echo "Saving startup command to network interface."
+  echo -e "\n$NETWORK_STARTUP_CMD" >> /etc/network/interfaces || exit 4
+fi

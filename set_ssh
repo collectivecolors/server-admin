@@ -1,0 +1,33 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#
+# setup_ssh [ $DIRECTORY ]
+#
+#-------------------------------------------------------------------------------
+# Properties
+
+INIT_DIR=$1
+
+if [ ! "$INIT_DIR" ]
+then
+  # Get the directory of this command.
+  CMD_NAME=`basename $0`
+  if [ ! `which $CMD_NAME` ]
+  then
+    cd `dirname $0`
+    INIT_DIR=`pwd`
+  
+  else
+    INIT_DIR=`dirname $INIT_DIR`  
+  fi  
+fi
+
+#-------------------------------------------------------------------------------
+# Start
+
+echo "Copying SSH configurations."
+cp -f "$INIT_DIR/overrides/sshd_config" /etc/ssh/sshd_config || exit 1
+
+
+echo "Validating SSH configurations."
+/etc/init.d/ssh reload || exit 2

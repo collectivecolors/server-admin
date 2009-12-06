@@ -1,0 +1,40 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#
+# setup_root_env [ $DIRECTORY ]
+#
+#-------------------------------------------------------------------------------
+# Properties
+
+INIT_DIR=$1
+
+if [ ! "$INIT_DIR" ]
+then
+  # Get the directory of this command.
+  CMD_NAME=`basename $0`
+  if [ ! `which $CMD_NAME` ]
+  then
+    cd `dirname $0`
+    INIT_DIR=`pwd`
+  
+  else
+    INIT_DIR=`dirname $INIT_DIR`  
+  fi  
+fi
+
+PATH_SETTING="PATH=\$PATH:$INIT_DIR"
+
+#-------------------------------------------------------------------------------
+# Start
+
+echo "Copying default root shell environment."
+
+cp -f "$INIT_DIR/overrides/root.bashrc" /root/.bashrc || exit 1
+
+if ! grep -q "$PATH_SETTING" /root/.bashrc
+then
+  echo "Including $INIT_DIR in root PATH variable."
+  echo -e "\n$PATH_SETTING" >> /root/.bashrc || exit 2
+fi
+
+cp -f "$INIT_DIR/overrides/user.bash_aliases" /root/.bash_aliases || exit 3

@@ -1,0 +1,34 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#
+# set_server_info
+#
+#-------------------------------------------------------------------------------
+# Start
+
+MY_HOSTNAME=''
+
+echo -n "Enter hostname for this server: "
+read MY_HOSTNAME
+echo ''
+
+if [ ! $MY_HOSTNAME ]
+then
+  echo "You must specify a hostname for this server."
+  exit 1
+fi
+
+echo "Setting hostname to $MY_HOSTNAME"
+echo -n $MY_HOSTNAME > /etc/hostname || exit 2
+
+
+# TODO: Make this configurable
+echo "Setting locale information."
+
+locale-gen en_US.UTF-8 || exit 3
+/usr/sbin/update-locale LANG=en_US.UTF-8 || exit 4
+
+
+echo "Setting timezone information."
+
+dpkg-reconfigure tzdata || exit 5

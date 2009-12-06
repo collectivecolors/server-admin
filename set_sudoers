@@ -1,0 +1,53 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+#
+# setup_sudoers [ $DIRECTORY ]
+#
+#-------------------------------------------------------------------------------
+# Properties
+
+INIT_DIR=$1
+
+if [ ! "$INIT_DIR" ]
+then
+  # Get the directory of this command.
+  CMD_NAME=`basename $0`
+  if [ ! `which $CMD_NAME` ]
+  then
+    cd `dirname $0`
+    INIT_DIR=`pwd`
+  
+  else
+    INIT_DIR=`dirname $INIT_DIR`  
+  fi  
+fi
+
+#-------------------------------------------------------------------------------
+# Start
+
+echo "Creating sudoers lock file."
+if [ -f "/etc/sudoers.tmp" ]
+then
+  exit 1
+fi
+
+STATUS=0
+
+touch /etc/sudoers.tmp || STATUS=2
+
+if [ $STATUS -eq 0 ]
+then
+  echo "Validating sudoers configurations."
+  visudo -c -f "$INIT_DIR/overrides/sudoers" || STATUS=3
+fi
+
+if [ $STATUS -eq 0 ]
+then
+  echo "Copying sudoers configurations."
+  cp "$INIT_DIR/overrides/sudoers" /etc/sudoers || STATUS=4
+fi
+
+echo "Removing sudoers lock file."
+rm /etc/sudoers.tmp || STATUS=5
+
+exit $STATUS
