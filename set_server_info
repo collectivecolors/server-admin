@@ -4,31 +4,109 @@
 # set_server_info
 #
 #-------------------------------------------------------------------------------
-# Start
+# Properties
+
+HELP="
+The set_server_info command sets basic server information on an Ubuntu server.  
+WARNING: This script has only been tested with 8.04 LTS.
+
+The following information is currently set:
+
+1. hostname
+2. locale
+3. timezone
+
+--------------------------------------------------------------------------------
+
+ Developed by Adrian Webb of http://collectivecolors.com
+ Licensed under GPL v2
+
+ See the project page at:  http://github.com/collectivecolors/server-admin
+ Report issues here:       http://github.com/collectivecolors/server-admin/issues
+ 
+--------------------------------------------------------------------------------
+"
+
+USAGE="
+usage: init_server [ -h | --help ]             # Show usage information
+                   -------------------------------------------------------------
+                   [ -n | --host-name <host> ] # Server hostname
+                                               # If this is not specified, you are prompted for it
+                   -------------------------------------------------------------
+                   [ -l | --locale <locale> ]  # Locale for this server
+                                               # Defaults to 'en_us.UTF-8'
+"
 
 MY_HOSTNAME=''
+MY_LOCALE='en_US.UTF-8'
 
-echo -n "Enter hostname for this server: "
-read MY_HOSTNAME
-echo ''
+
+# Parse parameters
+
+while test $# -ne 0
+do
+	case "$1" in
+	  
+  -h|--help)
+    echo "$HELP"
+    echo "$USAGE"
+    exit 0;;
+  
+	-n|--host-name)
+    if [ ! "$2" ]
+    then
+      echo "Host name option requires a domain name."
+      echo "$USAGE"
+      exit 1
+    fi
+    
+		MY_HOSTNAME="$2"
+    shift;;
+	
+	-l|--locale)
+    if [ ! "$2" ]
+    then
+      echo "Locale option requires a locale name (Ex: 'en_US.UTF-8')."
+      echo "$USAGE"
+      exit 2
+    fi
+    
+		MY_LOCALE="$2"
+    shift;;
+	  
+	*) break;;
+	esac
+	shift
+done
+
+
+#-------------------------------------------------------------------------------
+# Start
 
 if [ ! $MY_HOSTNAME ]
 then
+  echo -n "Enter hostname for this server: "
+  read MY_HOSTNAME
+  echo ''
+fi
+if [ ! $MY_HOSTNAME ]
+then
   echo "You must specify a hostname for this server."
-  exit 1
+  exit 3
 fi
 
 echo "Setting hostname to $MY_HOSTNAME"
-echo -n $MY_HOSTNAME > /etc/hostname || exit 2
+echo -n "$MY_HOSTNAME" > /etc/hostname || exit 4
 
 
-# TODO: Make this configurable
 echo "Setting locale information."
 
-locale-gen en_US.UTF-8 || exit 3
-/usr/sbin/update-locale LANG=en_US.UTF-8 || exit 4
+locale-gen "$MY_LOCALE" || exit 5
+/usr/sbin/update-locale LANG="$MY_LOCALE" || exit 6
 
 
 echo "Setting timezone information."
 
-dpkg-reconfigure tzdata || exit 5
+dpkg-reconfigure tzdata || exit 7
+
+echo "Successfully set basic server information."

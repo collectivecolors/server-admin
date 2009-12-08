@@ -1,84 +1,210 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
 # 
-# init_server [ $DIRECTORY ]
+# init_server
 # 
-# IMPORTANT: This script should be run by root on a freshly installed server.
-#
 #-------------------------------------------------------------------------------
 # Properties
 
-# Directory that contains all of the files for server initialization.
+HELP="
+The init_server command initializes a freshly installed Ubuntu server.
+  
+WARNING: This script has only been tested with 8.04 LTS.
 
-INIT_DIR=$1
+IMPORTANT: This script should be run by root on a freshly installed server.
 
+The following tasks are undertaken:
+
+1. Sets server information -> hostname
+                              locale ( en_US.UTF-8 )
+                              timezone ( configurable )
+                              
+2. Updates and upgrades server software
+  * Installs some core utilities
+
+3. Sets root environment -> .bashrc
+                            .bash_aliases
+                            .profile
+                            
+4. Sets skeleton user environment -> .bashrc
+                                     .bash_aliases
+                                     .profile
+                                     
+5. Sets iptables rules
+  * Creates /etc/iptables.rules ( current iptables rule set )
+
+6. Creates administrative user
+7. Sets sudoers configurations
+8. Sets ssh configurations
+
+
+When you have successfully run this script, you should keep your root
+session open then launch a new terminal and log in with the administrative user.
+If you are able to successfully login, the reboot the server for some of the
+information, such as hostname, to take effect.
+
+If login failed, check your ssh configurations in: /etc/ssh/sshd_config.
+
+--------------------------------------------------------------------------------
+
+ Developed by Adrian Webb of http://collectivecolors.com
+ Licensed under GPL v2
+
+ See the project page at:  http://github.com/collectivecolors/server-admin
+ Report issues here:       http://github.com/collectivecolors/server-admin/issues
+ 
+--------------------------------------------------------------------------------
+"
+
+USAGE="
+usage: init_server [ -h | --help ]                # Show usage information
+                   -------------------------------------------------------------
+                   [ -o | --override-dir <dir> ]  # Directory that contains server overrides
+                                                  # Defaults to <cmd-dir>/overrides
+                   -------------------------------------------------------------
+                   [ -s | --script-dir <dir> ]    # Directory that contains server scripts 
+                                                  # Defaults to <cmd-dir>
+                   -------------------------------------------------------------
+                   [ -a | --admin <user-name> ]   # Administrative user
+                                                  # Defaults to 'admin'
+                   -------------------------------------------------------------
+                   [ -l | --locale <locale> ]  # Locale for this server
+                                               # Defaults to 'en_us.UTF-8'
+"
+
+
+# Get the directory of this command.
+
+CMD_NAME=`basename $0`
+INIT_DIR=`which $CMD_NAME`
+  
 if [ ! "$INIT_DIR" ]
 then
-  # Get the directory of this command.
-  CMD_NAME=`basename $0`
-  INIT_DIR=`which $CMD_NAME`
+  cd `dirname $0`
+  INIT_DIR=`pwd`
   
-  if [ ! "$INIT_DIR" ]
-  then
-    cd `dirname $0`
-    INIT_DIR=`pwd`
+else
+  INIT_DIR=`dirname $INIT_DIR`  
+fi  
+
+OVERRIDE_DIR="$INIT_DIR/overrides"
+SCRIPT_DIR="$INIT_DIR"
+
+ADMIN_USER='admin'
+MY_LOCALE='en_US.UTF-8'
+
+
+# Parse parameters
+
+while test $# -ne 0
+do
+	case "$1" in
+	  
+  -h|--help)
+    echo "$HELP"
+    echo "$USAGE"
+    exit 0;;
   
-  else
-    INIT_DIR=`dirname $INIT_DIR`  
-  fi  
-fi
+	-o|--override-dir)
+    if [ ! "$2" ] || [ ! -d "$2" ]
+    then
+      echo "Override directory option requires an existing directory name."
+      echo "$USAGE"
+      exit 1
+    fi
+    
+		OVERRIDE_DIR="$2"
+    shift;;
+	
+	-s|--script-dir)
+    if [ ! "$2" ] || [ ! -d "$2" ]
+    then
+      echo "Script directory option requires an existing directory name."
+      echo "$USAGE"
+      exit 2
+    fi
+    
+		SCRIPT_DIR="$2"
+    shift;;
+	
+	-a|--admin)
+    if [ ! "$2" ]
+    then
+      echo "Administrative user option requires a Linux user name."
+      echo "$USAGE"
+      exit 3
+    fi
+    
+		ADMIN_USER="$2"
+    shift;;
+	
+	-l|--locale)
+    if [ ! "$2" ]
+    then
+      echo "Locale option requires a locale name (Ex: 'en_US.UTF-8')."
+      echo "$USAGE"
+      exit 4
+    fi
+    
+		MY_LOCALE="$2"
+    shift;;
+	  
+	*) break;;
+	esac
+	shift
+done
+
 
 #-------------------------------------------------------------------------------
 # Start
 
 # Preparing the setup folder
 
-chmod 700 $INIT_DIR
 chmod 700 $INIT_DIR/*
-chmod 600 $INIT_DIR/overrides/*
+chmod 700 $SCRIPT_DIR/*
 
 
 # Change root password
 
 echo "Resetting root password"
-passwd || exit 1
+passwd || exit 5
 
 
 # Change main server settings
 
-$INIT_DIR/set_server_info || exit $((1 + $?))
+$SCRIPT_DIR/set_server_info --locale "$MY_LOCALE" || exit $((5 + $?))
 
 
 # Update server software
 
-$INIT_DIR/upgrade_server || exit $((6 + $?))
+$SCRIPT_DIR/upgrade_server || exit $((12 + $?))
 
 
 # Setup bash environment
 
-$INIT_DIR/set_root_env $INIT_DIR || exit $((10 + $?))
-$INIT_DIR/set_default_user_env $INIT_DIR || exit $((14 + $?))
+$SCRIPT_DIR/set_root_env --override-dir $OVERRIDE_DIR || exit $((16 + $?))
+$SCRIPT_DIR/set_default_user_env --override-dir $OVERRIDE_DIR || exit $((20 + $?))
 
 
 # Add administrative user
 
 echo "Adding administrative user."
-adduser admin || exit 18
+adduser admin || exit 25
 
 
 # Setup basic IP tables
 
-$INIT_DIR/set_iptables $INIT_DIR || exit $((18 + $?))
+$SCRIPT_DIR/set_iptables --override-dir $OVERRIDE_DIR || exit $((25 + $?))
 
 
 # Setup user and group sudo privileges
 
-$INIT_DIR/set_sudoers $INIT_DIR || exit $((22 + $?))
+$SCRIPT_DIR/set_sudoers --override-dir $OVERRIDE_DIR || exit $((29 + $?))
 
 
 # Setup the secure shell configuration
 
-$INIT_DIR/set_ssh $INIT_DIR || exit $((27 + $?))
+$SCRIPT_DIR/set_ssh --override-dir $OVERRIDE_DIR || exit $((35 + $?))
 
 
 # Finalizing the setup folder

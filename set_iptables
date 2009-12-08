@@ -1,30 +1,80 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
 #
-# setup_iptables [ $DIRECTORY ]
+# set_iptables
 #
 #-------------------------------------------------------------------------------
 # Properties
 
-INIT_DIR=$1
+HELP="
+The set_iptables command initializes the server iptables firewall and adds the
+iptables rules startup to the network interface.
 
+WARNING: This script has only been tested with 8.04 LTS.
+
+--------------------------------------------------------------------------------
+
+ Developed by Adrian Webb of http://collectivecolors.com
+ Licensed under GPL v2
+
+ See the project page at:  http://github.com/collectivecolors/server-admin
+ Report issues here:       http://github.com/collectivecolors/server-admin/issues
+ 
+--------------------------------------------------------------------------------
+"
+
+USAGE="
+usage: set_iptables [ -h | --help ]                # Show usage information
+                    -------------------------------------------------------------
+                    [ -o | --override-dir <dir> ]  # Directory that contains server overrides
+                                                   # Defaults to <cmd-dir>/overrides
+"
+
+# Get the directory of this command.
+
+CMD_NAME=`basename $0`
+INIT_DIR=`which $CMD_NAME`
+  
 if [ ! "$INIT_DIR" ]
 then
-  # Get the directory of this command.
-  CMD_NAME=`basename $0`
-  INIT_DIR=`which $CMD_NAME`
+  cd `dirname $0`
+  INIT_DIR=`pwd`
   
-  if [ ! "$INIT_DIR" ]
-  then
-    cd `dirname $0`
-    INIT_DIR=`pwd`
-  
-  else
-    INIT_DIR=`dirname $INIT_DIR`  
-  fi  
-fi
+else
+  INIT_DIR=`dirname $INIT_DIR`  
+fi  
 
+OVERRIDE_DIR="$INIT_DIR/overrides"  
 NETWORK_STARTUP_CMD="pre-up iptables-restore < /etc/iptables.rules"
+
+
+# Parse parameters
+
+while test $# -ne 0
+do
+	case "$1" in
+	  
+  -h|--help)
+    echo "$HELP"
+    echo "$USAGE"
+    exit 0;;
+  
+	-o|--override-dir)
+    if [ ! "$2" ] || [ ! -d "$2" ]
+    then
+      echo "Override directory option requires an existing directory name."
+      echo "$USAGE"
+      exit 1
+    fi
+    
+		OVERRIDE_DIR="$2"
+    shift;;
+	  
+	*) break;;
+	esac
+	shift
+done
+
 
 #-------------------------------------------------------------------------------
 # Start
@@ -32,7 +82,7 @@ NETWORK_STARTUP_CMD="pre-up iptables-restore < /etc/iptables.rules"
 echo "Setting up iptables firewall."
 
 echo "Validating iptables rules."
-iptables-restore < "$INIT_DIR/overrides/iptables.rules" || exit 2
+iptables-restore < "$OVERRIDE_DIR/iptables.rules" || exit 2
 
 
 echo "Saving ip tables configuration."
@@ -44,3 +94,5 @@ then
   echo "Saving startup command to network interface."
   echo -e "\n$NETWORK_STARTUP_CMD" >> /etc/network/interfaces || exit 4
 fi
+
+echo "Successfully setup iptables firewall."

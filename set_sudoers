@@ -1,28 +1,79 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
 #
-# setup_sudoers [ $DIRECTORY ]
+# set_sudoers
 #
 #-------------------------------------------------------------------------------
 # Properties
 
-INIT_DIR=$1
+HELP="
+The set_sudoers command initializes the server sudoers configurations.
 
+WARNING: This script has only been tested with 8.04 LTS.
+
+--------------------------------------------------------------------------------
+
+ Developed by Adrian Webb of http://collectivecolors.com
+ Licensed under GPL v2
+
+ See the project page at:  http://github.com/collectivecolors/server-admin
+ Report issues here:       http://github.com/collectivecolors/server-admin/issues
+ 
+--------------------------------------------------------------------------------
+"
+
+USAGE="
+usage: set_sudoers [ -h | --help ]                # Show usage information
+                   -------------------------------------------------------------
+                   [ -o | --override-dir <dir> ]  # Directory that contains server overrides
+                                                  # Defaults to <cmd-dir>/overrides
+"
+
+
+# Get the directory of this command.
+
+CMD_NAME=`basename $0`
+INIT_DIR=`which $CMD_NAME`
+  
 if [ ! "$INIT_DIR" ]
 then
-  # Get the directory of this command.
-  CMD_NAME=`basename $0`
-  INIT_DIR=`which $CMD_NAME`
+  cd `dirname $0`
+  INIT_DIR=`pwd`
   
-  if [ ! "$INIT_DIR" ]
-  then
-    cd `dirname $0`
-    INIT_DIR=`pwd`
-  
-  else
-    INIT_DIR=`dirname $INIT_DIR`  
-  fi  
+else
+  INIT_DIR=`dirname $INIT_DIR`  
 fi
+
+OVERRIDE_DIR="$INIT_DIR/overrides"    
+
+
+# Parse parameters
+
+while test $# -ne 0
+do
+	case "$1" in
+	  
+  -h|--help)
+    echo "$HELP"
+    echo "$USAGE"
+    exit 0;;
+  
+	-o|--override-dir)
+    if [ ! "$2" ] || [ ! -d "$2" ]
+    then
+      echo "Override directory option requires an existing directory name."
+      echo "$USAGE"
+      exit 1
+    fi
+    
+		OVERRIDE_DIR="$2"
+    shift;;
+	  
+	*) break;;
+	esac
+	shift
+done
+
 
 #-------------------------------------------------------------------------------
 # Start
@@ -30,26 +81,31 @@ fi
 echo "Creating sudoers lock file."
 if [ -f "/etc/sudoers.tmp" ]
 then
-  exit 1
+  exit 2
 fi
 
 STATUS=0
 
-touch /etc/sudoers.tmp || STATUS=2
+touch /etc/sudoers.tmp || STATUS=3
 
 if [ $STATUS -eq 0 ]
 then
   echo "Validating sudoers configurations."
-  visudo -c -f "$INIT_DIR/overrides/sudoers" || STATUS=3
+  visudo -c -f "$OVERRIDE_DIR/sudoers" || STATUS=4
 fi
 
 if [ $STATUS -eq 0 ]
 then
   echo "Copying sudoers configurations."
-  cp "$INIT_DIR/overrides/sudoers" /etc/sudoers || STATUS=4
+  cp "$OVERRIDE_DIR/sudoers" /etc/sudoers || STATUS=5
 fi
 
 echo "Removing sudoers lock file."
-rm /etc/sudoers.tmp || STATUS=5
+rm /etc/sudoers.tmp || STATUS=6
+
+if [ $STATUS -eq 0 ]
+then
+  echo "Successfully set sudoers configurations."
+fi
 
 exit $STATUS

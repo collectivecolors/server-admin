@@ -1,35 +1,88 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
 #
-# setup_ssh [ $DIRECTORY ]
+# set_ssh
 #
 #-------------------------------------------------------------------------------
 # Properties
 
-INIT_DIR=$1
+HELP="
+The set_ssh command initializes the server secure shell configurations.
 
+WARNING: This script has only been tested with 8.04 LTS.
+
+--------------------------------------------------------------------------------
+
+ Developed by Adrian Webb of http://collectivecolors.com
+ Licensed under GPL v2
+
+ See the project page at:  http://github.com/collectivecolors/server-admin
+ Report issues here:       http://github.com/collectivecolors/server-admin/issues
+ 
+--------------------------------------------------------------------------------
+"
+
+USAGE="
+usage: set_ssh [ -h | --help ]                # Show usage information
+               -----------------------------------------------------------------
+               [ -o | --override-dir <dir> ]  # Directory that contains server overrides
+                                              # Defaults to <cmd-dir>/overrides
+"
+
+
+# Get the directory of this command.
+
+CMD_NAME=`basename $0`
+INIT_DIR=`which $CMD_NAME`
+  
 if [ ! "$INIT_DIR" ]
 then
-  # Get the directory of this command.
-  CMD_NAME=`basename $0`
-  INIT_DIR=`which $CMD_NAME`
+  cd `dirname $0`
+  INIT_DIR=`pwd`
   
-  if [ ! "$INIT_DIR" ]
-  then
-    cd `dirname $0`
-    INIT_DIR=`pwd`
+else
+  INIT_DIR=`dirname $INIT_DIR`  
+fi  
+
+OVERRIDE_DIR="$INIT_DIR/overrides"    
+
+
+# Parse parameters
+
+while test $# -ne 0
+do
+	case "$1" in
+	  
+  -h|--help)
+    echo "$HELP"
+    echo "$USAGE"
+    exit 0;;
   
-  else
-    INIT_DIR=`dirname $INIT_DIR`  
-  fi  
-fi
+	-o|--override-dir)
+    if [ ! "$2" ] || [ ! -d "$2" ]
+    then
+      echo "Override directory option requires an existing directory name."
+      echo "$USAGE"
+      exit 1
+    fi
+    
+		OVERRIDE_DIR="$2"
+    shift;;
+	  
+	*) break;;
+	esac
+	shift
+done
+
 
 #-------------------------------------------------------------------------------
 # Start
 
 echo "Copying SSH configurations."
-cp -f "$INIT_DIR/overrides/sshd_config" /etc/ssh/sshd_config || exit 1
+cp -f "$OVERRIDE_DIR/sshd_config" /etc/ssh/sshd_config || exit 2
 
 
 echo "Validating SSH configurations."
-/etc/init.d/ssh reload || exit 2
+/etc/init.d/ssh reload || exit 3
+
+echo "Successfully set secure shell configurations."

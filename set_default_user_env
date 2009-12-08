@@ -1,34 +1,86 @@
 #!/bin/bash
 #-------------------------------------------------------------------------------
 #
-# setup_default_user_env [ $DIRECTORY ]
+# set_default_user_env
 #
 #-------------------------------------------------------------------------------
 # Properties
 
-INIT_DIR=$1
+HELP="
+The set_default_user_env command initializes the skeleton user shell environment. 
+WARNING: This script has only been tested with 8.04 LTS.
 
+--------------------------------------------------------------------------------
+
+ Developed by Adrian Webb of http://collectivecolors.com
+ Licensed under GPL v2
+
+ See the project page at:  http://github.com/collectivecolors/server-admin
+ Report issues here:       http://github.com/collectivecolors/server-admin/issues
+ 
+--------------------------------------------------------------------------------
+"
+
+USAGE="
+usage: set_default_user_env [ -h | --help ]                # Show usage information
+                            ----------------------------------------------------
+                            [ -o | --override-dir <dir> ]  # Directory that contains server overrides
+                                                           # Defaults to <cmd-dir>/overrides
+"
+
+
+# Get the directory of this command.
+
+CMD_NAME=`basename $0`
+INIT_DIR=`which $CMD_NAME`
+  
 if [ ! "$INIT_DIR" ]
 then
-  # Get the directory of this command.
-  CMD_NAME=`basename $0`
-  INIT_DIR=`which $CMD_NAME`
+  cd `dirname $0`
+  INIT_DIR=`pwd`
   
-  if [ ! "$INIT_DIR" ]
-  then
-    cd `dirname $0`
-    INIT_DIR=`pwd`
+else
+  INIT_DIR=`dirname $INIT_DIR`  
+fi  
+
+OVERRIDE_DIR="$INIT_DIR/overrides"  
+
+
+# Parse parameters
+
+while test $# -ne 0
+do
+	case "$1" in
+	  
+  -h|--help)
+    echo "$HELP"
+    echo "$USAGE"
+    exit 0;;
   
-  else
-    INIT_DIR=`dirname $INIT_DIR`  
-  fi  
-fi
+	-o|--override-dir)
+    if [ ! "$2" ] || [ ! -d "$2" ]
+    then
+      echo "Override directory option requires an existing directory name."
+      echo "$USAGE"
+      exit 1
+    fi
+    
+		OVERRIDE_DIR="$2"
+    shift;;
+	  
+	*) break;;
+	esac
+	shift
+done
+
 
 #-------------------------------------------------------------------------------
 # Start
 
 echo "Copying default user shell environment."
 
-cp -f "$INIT_DIR/overrides/user.profile" /etc/skel/.profile || exit 1
-cp -f "$INIT_DIR/overrides/user.bashrc" /etc/skel/.bashrc || exit 2
-cp -f "$INIT_DIR/overrides/user.bash_aliases" /etc/skel/.bash_aliases || exit 3
+cp -f "$OVERRIDE_DIR/user.profile" /etc/skel/.profile || exit 2
+cp -f "$OVERRIDE_DIR/user.bashrc" /etc/skel/.bashrc || exit 3
+cp -f "$OVERRIDE_DIR/user.bash_aliases" /etc/skel/.bash_aliases || exit 4
+
+echo "Successfully set default user shell environment."

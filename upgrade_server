@@ -4,6 +4,53 @@
 # upgrade_server
 #
 #-------------------------------------------------------------------------------
+# Properties
+
+HELP="
+The upgrade_server command upgrades server software on an Ubuntu server.  It 
+also installs some basic software packages applicable to server administration.   
+WARNING: This script has only been tested with 8.04 LTS.
+
+The following packages are currently installed:
+
+1. build-essential
+2. bash-completion
+3. dnsutils
+
+--------------------------------------------------------------------------------
+
+ Developed by Adrian Webb of http://collectivecolors.com
+ Licensed under GPL v2
+
+ See the project page at:  http://github.com/collectivecolors/server-admin
+ Report issues here:       http://github.com/collectivecolors/server-admin/issues
+ 
+--------------------------------------------------------------------------------
+"
+
+USAGE="
+usage: upgrade_server [ -h | --help ] # Show usage information
+"
+
+
+# Parse parameters
+
+while test $# -ne 0
+do
+	case "$1" in
+	  
+  -h|--help)
+    echo "$HELP"
+    echo "$USAGE"
+    exit 0;;
+    
+	*) break;;
+	esac
+	shift
+done
+
+
+#-------------------------------------------------------------------------------
 # Start
 
 echo "Updating server packages."
@@ -19,3 +66,5 @@ aptitude install build-essential \
                  bash-completion \
                  dnsutils \
 || exit 4
+
+echo "Successfully upgraded the server software and installed core packages."
