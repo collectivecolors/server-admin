@@ -161,6 +161,8 @@ done
 # Preparing the setup folder
 
 chmod 700 $INIT_DIR/*
+chmod 644 $INIT_DIR/*.* # Don't allow execution of non scripts.
+
 chmod 700 $SCRIPT_DIR/*
 
 
