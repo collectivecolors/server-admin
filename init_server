@@ -191,6 +191,9 @@ $SCRIPT_DIR/set_default_user_env --override-dir $OVERRIDE_DIR || exit $((20 + $?
 echo "Adding administrative user."
 adduser "$ADMIN_USER" || exit 25
 
+addgroup admin
+adduser "$ADMIN_USER" admin
+
 
 # Setup basic IP tables
 
