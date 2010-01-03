@@ -16,7 +16,7 @@ IMPORTANT: This script should be run by root on a freshly installed server.
 The following tasks are undertaken:
 
 1. Sets server information -> hostname
-                              locale ( en_US.UTF-8 )
+                              locale ( defaults to: en_US.UTF-8 )
                               timezone ( configurable )
                               
 2. Updates and upgrades server software
@@ -160,10 +160,8 @@ done
 
 # Preparing the setup folder
 
-chmod 700 $INIT_DIR/*
-chmod 644 $INIT_DIR/*.* # Don't allow execution of non scripts.
-
 chmod 700 $SCRIPT_DIR/*
+chmod 644 $SCRIPT_DIR/*.* # Don't allow execution of non scripts.
 
 
 # Change root password
@@ -191,7 +189,7 @@ $SCRIPT_DIR/set_default_user_env --override-dir $OVERRIDE_DIR || exit $((20 + $?
 # Add administrative user
 
 echo "Adding administrative user."
-adduser admin || exit 25
+adduser "$ADMIN_USER" || exit 25
 
 
 # Setup basic IP tables
@@ -211,7 +209,7 @@ $SCRIPT_DIR/set_ssh --override-dir $OVERRIDE_DIR || exit $((35 + $?))
 
 # Finalizing the setup folder
 
-chmod 600 "$INIT_DIR/init_server"
+chmod 600 "$SCRIPT_DIR/init_server"
 
 echo ''
 echo "Finished initializing the server."
