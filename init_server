@@ -77,15 +77,18 @@ usage: init_server [ -h | --help ]                # Show usage information
 
 CMD_NAME=`basename $0`
 INIT_DIR=`which $CMD_NAME`
-  
+
 if [ ! "$INIT_DIR" ]
 then
-  cd `dirname $0`
+  CMD_NAME=`readlink -f $0`
+
+  cd `dirname $CMD_NAME`
   INIT_DIR=`pwd`
-  
+
 else
-  INIT_DIR=`dirname $INIT_DIR`  
-fi  
+  INIT_DIR=`readlink -f $INIT_DIR`
+  INIT_DIR=`dirname $INIT_DIR`
+fi
 
 OVERRIDE_DIR="$INIT_DIR/overrides"
 SCRIPT_DIR="$INIT_DIR"
