@@ -55,16 +55,16 @@ done
 
 echo "Updating server packages."
 
-aptitude update || exit 1
-aptitude safe-upgrade || exit 2
-aptitude full-upgrade || exit 3
+apt-get update || exit 1
+apt-get safe-upgrade || exit 2
+apt-get full-upgrade || exit 3
 
 
 echo "Make sure some core packages are installed."
 
-aptitude install build-essential \
-                 bash-completion \
-                 dnsutils \
+apt-get install build-essential \
+                bash-completion \
+                dnsutils \
 || exit 4
 
 echo "Successfully upgraded the server software and installed core packages."
