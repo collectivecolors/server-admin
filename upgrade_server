@@ -56,8 +56,7 @@ done
 echo "Updating server packages."
 
 apt-get update || exit 1
-apt-get safe-upgrade || exit 2
-apt-get full-upgrade || exit 3
+apt-get upgrade || exit 2
 
 
 echo "Make sure some core packages are installed."
